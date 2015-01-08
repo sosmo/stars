@@ -112,7 +112,7 @@ public class Star {
 				double x = j - xOrigo;
 				double y = yOrigo - i;
 
-				// Pisteitä, jotka sijoittuvat 3. neljännekseen ei tarvitse laskea, koska mikään osa kolmiosta ei tule sijoittumaan niihin. Tämä välttää ylimääräisten tarkistusten lisäämien muihin ehtoihin siltä varalta, että kolmion kulma on yli PI/2.
+				// Pisteitä, jotka sijoittuvat 3. neljännekseen ei tarvitse turhaan laskea, koska mikään osa kolmiosta ei tule sijoittumaan niihin.
 				if (x < 0 && y < 0) {
 					//System.out.print("  ");  // DEBUG
 					continue;
@@ -143,7 +143,7 @@ public class Star {
 				double xMinDist;  // x:n pienin sallittu arvo y:n arvoon nähden.
 				// Jos kolmion suuremman kulman omaava sivu menee y-akselin yli, niin pienimmän sallitun y-arvon laskua on tarkistettava, tällä y-arvolla on nimittäin käännekohta y-akselin kohdalla.
 				if (dirPlus > halfPi && x < 0) {
-					yMinDist = Math.tan(dirPlus) * -x;
+					yMinDist = Math.tan(dirPlus) * x;
 				}
 				else {
 					yMinDist = Math.tan(dirMinus) * x;
@@ -151,7 +151,7 @@ public class Star {
 
 				// Jos kolmion pienemmän kulman omaava sivu menee x-akselin yli, niin pienimmän sallitun x-arvon laskua on tarkistettava, tällä x-arvolla on nimittäin käännekohta x-akselin kohdalla.
 				if (dirMinus < 0 && y < 0)  {
-					xMinDist = -y / Math.tan(dirMinus);
+					xMinDist = y / Math.tan(dirMinus);
 				}
 				else {
 					xMinDist = y / Math.tan(dirPlus);
