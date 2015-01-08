@@ -106,21 +106,19 @@ public class Star {
 		double xOrigo = size / 2;
 		double yOrigo = size / 2;
 
-		for (int i = 0; i < canvas.length; i++) {
-			for (int j = 0; j < canvas[0].length; j++) {
-				// Suhteutetaan taulukon indeksi koordinaatistoon.
-				double x = j - xOrigo;
-				double y = yOrigo - i;
 
-				// Pisteitä, jotka sijoittuvat 3. neljännekseen ei tarvitse laskea, koska mikään osa kolmiosta ei tule sijoittumaan niihin. Tämä välttää ylimääräisten tarkistusten lisäämien muihin ehtoihin siltä varalta, että kolmion kulma on yli PI/2.
-				if (x < 0 && y < 0) {
-					//System.out.print("  ");  // DEBUG
-					continue;
-				}
+
+//		int startX = (int)Math.min(xOrigo, xOrigo+xBound);
+//		int endX = (int)Math.min(xOrigo+xMax, canvas.length);
+		int startX = (int)Math.min(xOrigo, xOrigo+xBound);
+		int endX = (int)Math.max(xOrigo+xMax, canvas.length-1);
+
+		for (int i = startX; i <= endX; i++) {
+
+				double x = i - xOrigo;
 
 				double yMaxDist;  // y:n suurin sallittu arvo x:n arvoon nähden.
-				double xMaxDist;  // x:n suurin sallittu arvo y:n arvoon nähden.
-				if (x >= xBound - 0.001) {
+				if (x >= Math.floor(xBound) - 0.001) {  // TODO!!!
 					// Lasketaan y:n suurin sallittu arvo yBoundin jälkeen "apukolmion" ja käännekohdan y-arvon avulla.
 					yMaxDist = yMax - (Math.tan(helperAngle) * (x - xBound));
 				}
@@ -129,42 +127,23 @@ public class Star {
 					yMaxDist = Math.tan(dirPlus) * x;
 				}
 
-				if (y >= yBound - 0.001) {
-					// Lasketaan x:n suurin sallittu arvo yBoundin jälkeen "apukolmion" ja käännekohdan x-arvon avulla.
-					xMaxDist = xMax - ((y - yBound) / Math.tan(helperAngle));
-				}
-				else {
-					// x:n suurin sallittu arvo sivun ja y-koordinaatin avulla.
-					xMaxDist = y / Math.tan(dirMinus);
-				}
-
-
 				double yMinDist;  // y:n pienin sallittu arvo x:n arvoon nähden.
-				double xMinDist;  // x:n pienin sallittu arvo y:n arvoon nähden.
-				// Jos kolmion suuremman kulman omaava sivu menee y-akselin yli, niin pienimmän sallitun y-arvon laskua on tarkistettava, tällä y-arvolla on nimittäin käännekohta y-akselin kohdalla.
 				if (dirPlus > halfPi && x < 0) {
-					yMinDist = Math.tan(dirPlus) * -x;
+					yMinDist = Math.tan(dirPlus) * x;  // TODO pitää huomioida että tangentin arvo räjähtää suorakulman lähellä
 				}
 				else {
 					yMinDist = Math.tan(dirMinus) * x;
 				}
 
-				// Jos kolmion pienemmän kulman omaava sivu menee x-akselin yli, niin pienimmän sallitun x-arvon laskua on tarkistettava, tällä x-arvolla on nimittäin käännekohta x-akselin kohdalla.
-				if (dirMinus < 0 && y < 0)  {
-					xMinDist = -y / Math.tan(dirMinus);
-				}
-				else {
-					xMinDist = y / Math.tan(dirPlus);
-				}
+				int startY = (int)Math.max(yOrigo-yMaxDist, 0);
+				int endY = (int)Math.min(yOrigo-yMinDist, canvas[0].length-1);
 
-				// Jos nykyinen taulukon kohta on koordinaatistoon muunnettuna sekä x:n että y:n ala- ja ylärajojen sisällä, merkitään kohta.
-				if (x >= xMinDist-0.01 && x <= xMaxDist+0.01 && y >= yMinDist-0.01 && y <= yMaxDist+0.01) {  // TODO ei kauheen siisti
-					canvas[i][j] = 1;
-					// System.out.print(" *");  // DEBUG
-				}
-				//else System.out.print(" .");  // DEBUG
+			for (int j = startY; j <= endY; j++) {
+
+				double y = yOrigo - i;
+
+				canvas[j][i] = 1;  // huom kääntö koska halutaan käyttää ulointa matriisia riveihin muualla
 			}
-			//System.out.println("");  // DEBUG
 		}
 		return canvas;
 	}
@@ -488,84 +467,88 @@ public class Star {
 	}
 
 	/**
-	 * Manuaalinen testisekvenssi piirtoalohjelmien ja integraation testaamiseksi.
+	 * Manuaalinen testisekvenssi piirtoalihjelmien ja integraation testaamiseksi.
 	 *
 	 * @param args Ei käytössä.
 	 */
 	public static void main(String[] args) {
 		try {
-			int[][] m;
+			int[][] x =drawTriangleToFirstQuarter(PI/2.5, 10, 15);
+			printCanvas(x, '*');
+			Thread.sleep(0);
 
-			for (double dir = -3*PI; dir < 3*PI; dir += 0.1) {
-				m = new int[50][50];
-				drawTriangle(25, 25, dir, 10, 15, m);
-				printCanvas(m, '*');
-				Thread.sleep(100);
-			}
-
-			Thread.sleep(1000);
-
-			for (double dir = 0.0; dir < 2*PI; dir += 0.1) {
-				m = new int[50][50];
-				drawTriangle(25, 25, dir, 45, 15, m);
-				printCanvas(m, '+');
-				Thread.sleep(100);
-			}
-
-			Thread.sleep(1000);
-
-			m = new int[60][60];
-			drawPolygon(25, 25, PI/2, 5, 15, m);
-			printCanvas(m, '*');
-
-			Thread.sleep(1000);
-
-			m = new int[60][60];
-			drawStar(30, 30, PI/2, 5, 15, m);
-			printCanvas(m, '*');
-
-			Thread.sleep(1000);
-
-			m = new int[60][60];
-			drawStar(30, 30, PI/2, 6, 20, m);
-			printCanvas(m, '*');
-
-			Thread.sleep(1000);
-
-			m = new int[60][60];
-			drawStar(0, 0, PI/2, 7, 20, m);
-			drawStar(0, 59, PI/2, 7, 20, m);
-			drawStar(59, 0, PI/2, 7, 20, m);
-			drawStar(65, 65, PI/2, 7, 20, m);
-			printCanvas(m, '*');
-
-			Thread.sleep(1000);
-
-			double direction = 0.0;
-			for (int i = 0; i < 75; i++) {
-				m = new int[60][100];
-				drawStar(25, 25, direction, 5, 15, m);
-				drawStar(60, 15, direction*2, 5, 6, m);
-				drawStar(70, 45, -direction/2, 7, 10, m);
-				direction += 0.1;
-				printCanvas(m, '+');
-				Thread.sleep(150);
-			}
-
-//			Thread.sleep(1000);
+//			int[][] m;
 //
-//			for (double dir = 0.0; dir < 2*PI; dir += 0.1) {
+//			for (double dir = -3*PI; dir < 3*PI; dir += 0.1) {
 //				m = new int[50][50];
-//				drawStar(25, 25, dir, 5, 15, m);
+//				drawTriangle(25, 25, dir, 10, 15, m);
 //				printCanvas(m, '*');
-//				Thread.sleep(200);
+//				Thread.sleep(100);
 //			}
 //
 //			Thread.sleep(1000);
 //
-//			m = new int[30][30];
-//			drawStar(15, 15, PI/2, 5, 10, m);
+//			for (double dir = 0.0; dir < 2*PI; dir += 0.1) {
+//				m = new int[50][50];
+//				drawTriangle(25, 25, dir, 45, 15, m);
+//				printCanvas(m, '+');
+//				Thread.sleep(100);
+//			}
+//
+//			Thread.sleep(1000);
+//
+//			m = new int[60][60];
+//			drawPolygon(25, 25, PI/2, 5, 15, m);
 //			printCanvas(m, '*');
+//
+//			Thread.sleep(1000);
+//
+//			m = new int[60][60];
+//			drawStar(30, 30, PI/2, 5, 15, m);
+//			printCanvas(m, '*');
+//
+//			Thread.sleep(1000);
+//
+//			m = new int[60][60];
+//			drawStar(30, 30, PI/2, 6, 20, m);
+//			printCanvas(m, '*');
+//
+//			Thread.sleep(1000);
+//
+//			m = new int[60][60];
+//			drawStar(0, 0, PI/2, 7, 20, m);
+//			drawStar(0, 59, PI/2, 7, 20, m);
+//			drawStar(59, 0, PI/2, 7, 20, m);
+//			drawStar(65, 65, PI/2, 7, 20, m);
+//			printCanvas(m, '*');
+//
+//			Thread.sleep(1000);
+//
+//			double direction = 0.0;
+//			for (int i = 0; i < 75; i++) {
+//				m = new int[60][100];
+//				drawStar(25, 25, direction, 5, 15, m);
+//				drawStar(60, 15, direction*2, 5, 6, m);
+//				drawStar(70, 45, -direction/2, 7, 10, m);
+//				direction += 0.1;
+//				printCanvas(m, '+');
+//				Thread.sleep(150);
+//			}
+//
+////			Thread.sleep(1000);
+////
+////			for (double dir = 0.0; dir < 2*PI; dir += 0.1) {
+////				m = new int[50][50];
+////				drawStar(25, 25, dir, 5, 15, m);
+////				printCanvas(m, '*');
+////				Thread.sleep(200);
+////			}
+////
+////			Thread.sleep(1000);
+////
+////			m = new int[30][30];
+////			drawStar(15, 15, PI/2, 5, 10, m);
+////			printCanvas(m, '*');
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
